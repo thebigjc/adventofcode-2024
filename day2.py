@@ -9,13 +9,6 @@ MIN_LEVELS = 2
 
 
 def is_safe(levels: Sequence[int]) -> bool:
-    """
-    Check if a sequence of levels is safe according to the rules.
-    A sequence is safe if all differences between consecutive numbers:
-    - Are non-zero
-    - Have the same sign (all increasing or decreasing)
-    - Are between 1 and 3 inclusive
-    """
     levels = torch.tensor(levels)
     differences = levels[1:] - levels[:-1]
 
@@ -34,15 +27,10 @@ def is_safe(levels: Sequence[int]) -> bool:
 
 
 def solve_part_a(reports: List[List[int]]) -> int:
-    """Solve part A: Count reports that are naturally safe."""
     return sum(1 for report in reports if is_safe(report))
 
 
 def solve_part_b(reports: List[List[int]]) -> int:
-    """
-    Solve part B: Count reports that are either naturally safe
-    or can become safe by removing one number.
-    """
     safe_count = 0
 
     for report in reports:
