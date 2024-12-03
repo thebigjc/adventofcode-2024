@@ -1,70 +1,42 @@
-import torch
-from typing import List, Sequence
 from aocd.models import Puzzle
 
-# Constants
-MIN_DIFFERENCE = 1
-MAX_DIFFERENCE = 3
-MIN_LEVELS = 2
+puzzle = Puzzle(2024, 2)
 
+def check(a):
+    if len(a) < 2: return True
+    diff = a[1] - a[0]
+    if diff == 0 or abs(diff) > 3: return False
+    for i in range(2, len(a)):
+        d = a[i] - a[i-1]
+        if d == 0 or abs(d) > 3 or d * diff < 0: return False
+    return True
 
-def is_safe(levels: Sequence[int]) -> bool:
-    levels = torch.tensor(levels)
-    differences = levels[1:] - levels[:-1]
-
-    # Check for zero differences (unsafe)
-    if torch.any(differences == 0):
-        return False
-
-    # Check if all differences have the same sign
-    signs = torch.sign(differences)
-    if torch.all(signs == 1) or torch.all(signs == -1):
-        abs_differences = torch.abs(differences)
-        return torch.all(
-            (abs_differences >= MIN_DIFFERENCE) & (abs_differences <= MAX_DIFFERENCE)
-        ).item()
-    return False
-
-
-def solve_part_a(reports: List[List[int]]) -> int:
-    return sum(1 for report in reports if is_safe(report))
-
-
-def solve_part_b(reports: List[List[int]]) -> int:
+def solve1(data):
     safe_count = 0
-
-    for report in reports:
-        if is_safe(report):
-            safe_count += 1
-        else:
-            # Try removing each level
-            for i in range(len(report)):
-                modified_report = report[:i] + report[i + 1 :]
-                if len(modified_report) >= MIN_LEVELS and is_safe(modified_report):
-                    safe_count += 1
-                    break
-
+    for line in data.strip().split('\n'):
+        a = list(map(int, line.split()))
+        if check(a): safe_count += 1
     return safe_count
 
+def solve2(data):
+    safe_count = 0
+    for line in data.strip().split('\n'):
+        a = list(map(int, line.split()))
+        if check(a):
+            safe_count += 1
+            continue
+        for i in range(len(a)):
+            b = a[:i] + a[i+1:]
+            if check(b):
+                safe_count += 1
+                break
+    return safe_count
 
-def main():
-    # Fetch puzzle input
-    puzzle = Puzzle(year=2024, day=2)
-    reports = [
-        [int(x) for x in line.strip().split()]
-        for line in puzzle.input_data.strip().split("\n")
-    ]
+p1 = solve1(puzzle.input_data)
+print("Part 1:", p1)
+puzzle.answer_a = p1
 
-    # Solve and submit answers
-    answer_a = solve_part_a(reports)
-    answer_b = solve_part_b(reports)
+p2 = solve2(puzzle.input_data)
+print("Part 2:", p2)
+puzzle.answer_b = p2
 
-    print(f"Part A: {answer_a}")
-    print(f"Part B: {answer_b}")
-
-    puzzle.answer_a = answer_a
-    puzzle.answer_b = answer_b
-
-
-if __name__ == "__main__":
-    main()
