@@ -1,42 +1,59 @@
-from aocd.models import Puzzle
+TEST_DATA = """7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9"""
 
-puzzle = Puzzle(2024, 2)
-
-def check(a):
-    if len(a) < 2: return True
-    diff = a[1] - a[0]
-    if diff == 0 or abs(diff) > 3: return False
-    for i in range(2, len(a)):
-        d = a[i] - a[i-1]
-        if d == 0 or abs(d) > 3 or d * diff < 0: return False
-    return True
+def check_safe(levels):
+    diffs = [levels[i+1] - levels[i] for i in range(len(levels)-1)]
+    if all(1 <= d <= 3 for d in diffs) or all(-3 <= d <= -1 for d in diffs):
+        return True
+    return False
 
 def solve1(data):
+    reports = data.strip().splitlines()
     safe_count = 0
-    for line in data.strip().split('\n'):
-        a = list(map(int, line.split()))
-        if check(a): safe_count += 1
+    for report in reports:
+        levels = list(map(int, report.split()))
+        if check_safe(levels):
+            safe_count += 1
     return safe_count
 
 def solve2(data):
+    reports = data.strip().splitlines()
     safe_count = 0
-    for line in data.strip().split('\n'):
-        a = list(map(int, line.split()))
-        if check(a):
+    for report in reports:
+        levels = list(map(int, report.split()))
+        if check_safe(levels):
             safe_count += 1
-            continue
-        for i in range(len(a)):
-            b = a[:i] + a[i+1:]
-            if check(b):
-                safe_count += 1
-                break
+        else:
+            for i in range(len(levels)):
+                temp_levels = levels[:i] + levels[i+1:]
+                if check_safe(temp_levels):
+                    safe_count += 1
+                    break
     return safe_count
 
-p1 = solve1(puzzle.input_data)
-print("Part 1:", p1)
-puzzle.answer_a = p1
+assert solve1(TEST_DATA) == 2
+assert check_safe([7, 6, 4, 2, 1]) == True
+assert check_safe([1, 2, 7, 8, 9]) == False
+assert check_safe([9, 7, 6, 2, 1]) == False
+assert check_safe([1, 3, 2, 4, 5]) == False
+assert check_safe([8, 6, 4, 4, 1]) == False
+assert check_safe([1, 3, 6, 7, 9]) == True
 
-p2 = solve2(puzzle.input_data)
-print("Part 2:", p2)
-puzzle.answer_b = p2
+assert solve2(TEST_DATA) == 4
 
+from aocd.models import Puzzle
+puzzle = Puzzle(2024, 2)
+data = puzzle.input_data
+
+part1_solution = solve1(data)
+part2_solution = solve2(data)
+
+print("Part 1:", part1_solution)
+print("Part 2:", part2_solution)
+
+puzzle.answer_a = part1_solution
+puzzle.answer_b = part2_solution
