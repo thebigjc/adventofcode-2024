@@ -37,21 +37,55 @@ def can_achieve_target(target, numbers, allow_concatenation=False):
     return target in possible_values
 
 
+def can_achieve_target_iterative(target, numbers, allow_concatenation=False):
+    if not numbers:
+        return False
+
+    stack = [(numbers[0], numbers[1:])]
+
+    while stack:
+        value, remaining = stack.pop()
+
+        if not remaining:
+            if value == target:
+                return True
+            continue
+
+        current = remaining[0]
+        next_remaining = remaining[1:]
+
+        value_mul = value * current
+        if value_mul <= target:
+            stack.append((value_mul, next_remaining))
+
+        value_add = value + current
+        if value_add <= target:
+            stack.append((value_add, next_remaining))
+
+        if allow_concatenation:
+            value_concat = int(str(value) + str(current))
+            if value_concat <= target:
+                stack.append((value_concat, next_remaining))
+
+    return False
+
+
 def process_line(line, allow_concatenation=False):
     if not line.strip():
         return 0
     lhs, rhs = line.split(":")
     target = int(lhs.strip())
     numbers = list(map(int, rhs.strip().split()))
-    return target if can_achieve_target(target, numbers, allow_concatenation) else 0
+    return (
+        target
+        if can_achieve_target_iterative(target, numbers, allow_concatenation)
+        else 0
+    )
 
 
 def solve_with_data(data, allow_concatenation=False, parallel=True):
     lines = data.strip().split("\n")
     if parallel:
-        # Using ThreadPoolExecutor to avoid pickling issues.
-        # Note: This might not speed up CPU-bound tasks much due to the GIL,
-        # but it will avoid the pickling error encountered with ProcessPoolExecutor.
         with ThreadPoolExecutor() as executor:
             results = list(
                 executor.map(lambda l: process_line(l, allow_concatenation), lines)
